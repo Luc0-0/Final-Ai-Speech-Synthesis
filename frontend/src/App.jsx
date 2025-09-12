@@ -217,10 +217,16 @@ function App() {
               <div style={commandsStyle}>
                 <h3 style={commandsTitle}>Available Commands</h3>
                 <div style={commandsGrid}>
+                  <div style={commandItem}>"Help"</div>
                   <div style={commandItem}>"What time is it?"</div>
                   <div style={commandItem}>"What's the date?"</div>
                   <div style={commandItem}>"Set timer 5 minutes"</div>
                   <div style={commandItem}>"Tell me a joke"</div>
+                  <div style={commandItem}>"Calculate 10 plus 5"</div>
+                  <div style={commandItem}>"Generate password"</div>
+                  <div style={commandItem}>"Motivate me"</div>
+                  <div style={commandItem}>"Flip coin"</div>
+                  <div style={commandItem}>"Roll dice"</div>
                 </div>
               </div>
             </div>

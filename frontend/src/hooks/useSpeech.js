@@ -15,6 +15,12 @@ export const useSpeech = () => {
   const [azureAvailable, setAzureAvailable] = useState(true);
   const recognitionRef = useRef(null);
   const socketRef = useRef(null);
+  const voiceSettingsRef = useRef(voiceSettings);
+  const azureAvailableRef = useRef(azureAvailable);
+  
+  // Update refs when state changes
+  voiceSettingsRef.current = voiceSettings;
+  azureAvailableRef.current = azureAvailable;
 
   const speakWithBrowser = useCallback((text) => {
     if ('speechSynthesis' in window) {
@@ -67,7 +73,7 @@ export const useSpeech = () => {
     // Initialize WebSocket
     const connectWebSocket = () => {
       try {
-        socketRef.current = new WebSocket('ws://localhost:8000/ws');
+        socketRef.current = new WebSocket('ws://127.0.0.1:8000/ws');
         
         socketRef.current.onopen = () => {
           console.log('Connected to server');
@@ -93,10 +99,45 @@ export const useSpeech = () => {
               };
               setHistory(prev => [historyItem, ...prev].slice(0, 15));
               
-              if (voiceSettings.useAzure) {
-                speakWithAzure(message.response.text);
+              console.log('Azure recognition result - useAzure:', voiceSettingsRef.current.useAzure, 'voice:', voiceSettingsRef.current.voice);
+              
+              if (voiceSettingsRef.current.useAzure) {
+                // Call Azure synthesis directly
+                if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                  let voiceName;
+                  switch (voiceSettingsRef.current.voice) {
+                    case 'british': voiceName = 'en-GB-RyanNeural'; break;
+                    case 'australian': voiceName = 'en-AU-WilliamNeural'; break;
+                    case 'female': voiceName = 'en-GB-LibbyNeural'; break;
+                    default: voiceName = 'en-US-DavisNeural';
+                  }
+                  
+                  console.log('Azure recognition - sending synthesis with voice:', voiceName);
+                  
+                  socketRef.current.send(JSON.stringify({
+                    type: 'azure_synthesize',
+                    text: message.response.text,
+                    voice_name: voiceName
+                  }));
+                }
               } else {
-                speakWithBrowser(message.response.text);
+                // Call browser speech directly
+                if ('speechSynthesis' in window) {
+                  const utterance = new SpeechSynthesisUtterance(message.response.text);
+                  utterance.rate = voiceSettingsRef.current.speed;
+                  utterance.volume = voiceSettingsRef.current.volume;
+                  
+                  const voices = speechSynthesis.getVoices();
+                  if (voiceSettingsRef.current.voice === 'british') {
+                    utterance.voice = voices.find(v => v.lang === 'en-GB') || voices[0];
+                  } else if (voiceSettingsRef.current.voice === 'australian') {
+                    utterance.voice = voices.find(v => v.lang === 'en-AU') || voices[0];
+                  } else if (voiceSettingsRef.current.voice === 'female') {
+                    utterance.voice = voices.find(v => v.name.toLowerCase().includes('female')) || voices[0];
+                  }
+                  
+                  speechSynthesis.speak(utterance);
+                }
               }
             } else {
               setStatus('Speech not recognized');
@@ -110,7 +151,7 @@ export const useSpeech = () => {
             console.log('Azure TTS completed');
           } else if (message.type === 'azure_synthesis_error') {
             console.log('Azure TTS error, using browser fallback');
-            speakWithBrowser(response);
+            speakWithBrowser(message.text || response);
           } else if (message.type === 'response') {
             setResponse(message.text);
             setStatus(message.success ? 'Success' : 'Command not recognized');
@@ -125,11 +166,87 @@ export const useSpeech = () => {
             };
             setHistory(prev => [historyItem, ...prev].slice(0, 15));
             
-            speakWithBrowser(message.text);
+            console.log('Response handler - useAzure:', voiceSettingsRef.current.useAzure, 'voice:', voiceSettingsRef.current.voice);
+            
+            if (voiceSettingsRef.current.useAzure && azureAvailableRef.current) {
+              // Call Azure synthesis directly
+              if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                let voiceName;
+                switch (voiceSettingsRef.current.voice) {
+                  case 'british': voiceName = 'en-GB-RyanNeural'; break;
+                  case 'australian': voiceName = 'en-AU-WilliamNeural'; break;
+                  case 'female': voiceName = 'en-GB-LibbyNeural'; break;
+                  default: voiceName = 'en-US-DavisNeural';
+                }
+                
+                console.log('Sending Azure synthesis with voice:', voiceName);
+                
+                socketRef.current.send(JSON.stringify({
+                  type: 'azure_synthesize',
+                  text: message.text,
+                  voice_name: voiceName
+                }));
+              }
+            } else {
+              console.log('Using browser speech');
+              // Call browser speech directly
+              if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(message.text);
+                utterance.rate = voiceSettingsRef.current.speed;
+                utterance.volume = voiceSettingsRef.current.volume;
+                
+                const voices = speechSynthesis.getVoices();
+                if (voiceSettingsRef.current.voice === 'british') {
+                  utterance.voice = voices.find(v => v.lang === 'en-GB') || voices[0];
+                } else if (voiceSettingsRef.current.voice === 'australian') {
+                  utterance.voice = voices.find(v => v.lang === 'en-AU') || voices[0];
+                } else if (voiceSettingsRef.current.voice === 'female') {
+                  utterance.voice = voices.find(v => v.name.toLowerCase().includes('female')) || voices[0];
+                }
+                
+                speechSynthesis.speak(utterance);
+              }
+            }
           } else if (message.type === 'timer_complete') {
             setResponse(message.text);
             setStatus('Timer Complete!');
-            speakWithBrowser(message.text);
+            
+            if (voiceSettingsRef.current.useAzure && azureAvailableRef.current) {
+              // Call Azure synthesis directly
+              if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                let voiceName;
+                switch (voiceSettingsRef.current.voice) {
+                  case 'british': voiceName = 'en-GB-RyanNeural'; break;
+                  case 'australian': voiceName = 'en-AU-WilliamNeural'; break;
+                  case 'female': voiceName = 'en-GB-LibbyNeural'; break;
+                  default: voiceName = 'en-US-DavisNeural';
+                }
+                
+                socketRef.current.send(JSON.stringify({
+                  type: 'azure_synthesize',
+                  text: message.text,
+                  voice_name: voiceName
+                }));
+              }
+            } else {
+              // Call browser speech directly
+              if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(message.text);
+                utterance.rate = voiceSettingsRef.current.speed;
+                utterance.volume = voiceSettingsRef.current.volume;
+                
+                const voices = speechSynthesis.getVoices();
+                if (voiceSettingsRef.current.voice === 'british') {
+                  utterance.voice = voices.find(v => v.lang === 'en-GB') || voices[0];
+                } else if (voiceSettingsRef.current.voice === 'australian') {
+                  utterance.voice = voices.find(v => v.lang === 'en-AU') || voices[0];
+                } else if (voiceSettingsRef.current.voice === 'female') {
+                  utterance.voice = voices.find(v => v.name.toLowerCase().includes('female')) || voices[0];
+                }
+                
+                speechSynthesis.speak(utterance);
+              }
+            }
             
             const historyItem = {
               command: 'Timer notification',
@@ -221,26 +338,35 @@ export const useSpeech = () => {
     setVoiceSettings(newSettings);
   }, []);
 
-  const speakWithAzure = useCallback((text) => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN && azureAvailable) {
-      socketRef.current.send(JSON.stringify({
-        type: 'azure_synthesize',
-        text: text,
-        voice_name: getAzureVoiceName()
-      }));
-    } else {
-      speakWithBrowser(text);
-    }
-  }, [azureAvailable, voiceSettings.voice]);
-
   const getAzureVoiceName = useCallback(() => {
     switch (voiceSettings.voice) {
       case 'british': return 'en-GB-RyanNeural';
       case 'australian': return 'en-AU-WilliamNeural';
-      case 'female': return 'en-US-JennyNeural';
+      case 'female': return 'en-GB-LibbyNeural';
       default: return 'en-US-DavisNeural';
     }
   }, [voiceSettings.voice]);
+
+  const speakWithAzure = useCallback((text) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN && azureAvailableRef.current) {
+      // Get current voice name from ref
+      let voiceName;
+      switch (voiceSettingsRef.current.voice) {
+        case 'british': voiceName = 'en-GB-RyanNeural'; break;
+        case 'australian': voiceName = 'en-AU-WilliamNeural'; break;
+        case 'female': voiceName = 'en-GB-LibbyNeural'; break;
+        default: voiceName = 'en-US-DavisNeural';
+      }
+      
+      socketRef.current.send(JSON.stringify({
+        type: 'azure_synthesize',
+        text: text,
+        voice_name: voiceName
+      }));
+    } else {
+      speakWithBrowser(text);
+    }
+  }, [speakWithBrowser]);
 
   const testVoice = useCallback(() => {
     const testText = "This is a test of your voice settings. How does it sound?";

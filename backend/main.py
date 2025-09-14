@@ -34,6 +34,7 @@ else:
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    global speech_key, speech_region, speech_config
     await websocket.accept()
     
     try:
@@ -73,10 +74,13 @@ async def websocket_endpoint(websocket: WebSocket):
                             "success": False
                         }))
                 except Exception as e:
-                    await websocket.send_text(json.dumps({
-                        "type": "azure_recognition_error",
-                        "error": str(e)
-                    }))
+                    try:
+                        await websocket.send_text(json.dumps({
+                            "type": "azure_recognition_error",
+                            "error": str(e)
+                        }))
+                    except:
+                        pass
             
             elif message["type"] == "azure_synthesize":
                 # Use Azure Text-to-Speech
@@ -113,10 +117,13 @@ async def websocket_endpoint(websocket: WebSocket):
                             "text": text
                         }))
                 except Exception as e:
-                    await websocket.send_text(json.dumps({
-                        "type": "azure_synthesis_error",
-                        "error": str(e)
-                    }))
+                    try:
+                        await websocket.send_text(json.dumps({
+                            "type": "azure_synthesis_error",
+                            "error": str(e)
+                        }))
+                    except:
+                        pass
             
             elif message["type"] == "process_command":
                 command = message["command"].lower().strip()
@@ -136,6 +143,47 @@ async def websocket_endpoint(websocket: WebSocket):
             elif message["type"] == "start_timer":
                 duration = message.get("duration", 60)
                 await start_timer(websocket, duration)
+            
+            elif message["type"] == "update_azure_credentials":
+                # Update Azure credentials
+                new_key = message.get("key", "")
+                new_region = message.get("region", "japaneast")
+                
+                if new_key and new_region:
+                    # Update environment variables
+                    os.environ['KEY'] = new_key
+                    os.environ['REGION'] = new_region
+                    
+                    # Update global variables
+                    speech_key = new_key
+                    speech_region = new_region
+                    
+                    # Reinitialize speech config
+                    try:
+                        speech_config = speech_sdk.SpeechConfig(subscription=speech_key, region=speech_region)
+                        
+                        # Update .env file
+                        env_content = f"KEY={new_key}\nREGION={new_region}"
+                        with open(os.path.join(os.path.dirname(__file__), '.env'), 'w') as f:
+                            f.write(env_content)
+                        
+                        await websocket.send_text(json.dumps({
+                            "type": "azure_credentials_updated",
+                            "success": True,
+                            "message": "Azure credentials updated successfully!"
+                        }))
+                    except Exception as e:
+                        await websocket.send_text(json.dumps({
+                            "type": "azure_credentials_error",
+                            "success": False,
+                            "error": str(e)
+                        }))
+                else:
+                    await websocket.send_text(json.dumps({
+                        "type": "azure_credentials_error",
+                        "success": False,
+                        "error": "Invalid credentials provided"
+                    }))
                     
     except WebSocketDisconnect:
         pass
@@ -276,11 +324,14 @@ async def process_voice_command(command):
 async def start_timer(websocket, duration):
     """Start a timer and notify when complete"""
     await asyncio.sleep(duration)
-    await websocket.send_text(json.dumps({
-        "type": "timer_complete",
-        "text": f"Timer finished! {duration//60} minute{'s' if duration//60 != 1 else ''} is up!",
-        "success": True
-    }))
+    try:
+        await websocket.send_text(json.dumps({
+            "type": "timer_complete",
+            "text": f"Timer finished! {duration//60} minute{'s' if duration//60 != 1 else ''} is up!",
+            "success": True
+        }))
+    except:
+        pass  # WebSocket might be closed
 
 if __name__ == "__main__":
     import uvicorn

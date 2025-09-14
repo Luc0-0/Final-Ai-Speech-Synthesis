@@ -172,39 +172,7 @@ const VoiceSettings = ({ settings, azureAvailable, onUpdate, onTestVoice, onTogg
         </div>
       </div>
 
-      {/* Speed Control */}
-      <div style={sectionStyle}>
-        <div style={sliderContainerStyle}>
-          <label style={labelStyle}>Speech Speed</label>
-          <div style={sliderValueStyle}>{settings?.speed || 1}x</div>
-        </div>
-        <input
-          type="range"
-          min="0.5"
-          max="2"
-          step="0.1"
-          value={settings?.speed || 1}
-          onChange={(e) => onUpdate({ ...settings, speed: parseFloat(e.target.value) })}
-          style={sliderStyle}
-        />
-      </div>
 
-      {/* Volume Control */}
-      <div style={sectionStyle}>
-        <div style={sliderContainerStyle}>
-          <label style={labelStyle}>Volume</label>
-          <div style={sliderValueStyle}>{Math.round((settings?.volume || 1) * 100)}%</div>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.1"
-          value={settings?.volume || 1}
-          onChange={(e) => onUpdate({ ...settings, volume: parseFloat(e.target.value) })}
-          style={sliderStyle}
-        />
-      </div>
 
       {/* Azure Toggle */}
       <div style={sectionStyle}>

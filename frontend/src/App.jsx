@@ -4,6 +4,8 @@ import StatusDisplay from './components/StatusDisplay';
 import ResponseArea from './components/ResponseArea';
 import VoiceSettings from './components/VoiceSettings';
 import CommandHistory from './components/CommandHistory';
+import AzureSettings from './components/AzureSettings';
+import AudioControls from './components/AudioControls';
 
 function App() {
   const {
@@ -19,7 +21,8 @@ function App() {
     updateVoiceSettings,
     testVoice,
     clearHistory,
-    toggleAzureUsage
+    toggleAzureUsage,
+    updateAzureCredentials
   } = useSpeech();
 
   const appStyle = {
@@ -86,21 +89,21 @@ function App() {
 
   const gridStyle = {
     width: '100%',
-    maxWidth: '1400px',
+    maxWidth: '1200px',
     display: 'grid',
-    gridTemplateColumns: '320px 1fr 320px',
-    gap: '32px',
+    gridTemplateColumns: '280px 1fr 280px',
+    gap: '24px',
     alignItems: 'start'
   };
 
   const mainPanelStyle = {
     background: 'rgba(255, 255, 255, 0.08)',
     backdropFilter: 'blur(24px)',
-    borderRadius: '32px',
+    borderRadius: '24px',
     border: '1px solid rgba(255, 255, 255, 0.12)',
-    padding: '48px 40px',
+    padding: '32px 28px',
     textAlign: 'center',
-    boxShadow: '0 32px 64px -12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 24px 48px -12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
     position: 'relative',
     overflow: 'hidden'
   };
@@ -115,20 +118,20 @@ function App() {
   };
 
   const titleStyle = {
-    fontSize: '3.5rem',
+    fontSize: '2.8rem',
     fontWeight: '800',
     background: 'linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    marginBottom: '12px',
+    marginBottom: '8px',
     letterSpacing: '-0.02em',
     lineHeight: '1.1'
   };
 
   const subtitleStyle = {
     color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: '1.125rem',
-    marginBottom: '48px',
+    fontSize: '1rem',
+    marginBottom: '32px',
     fontWeight: '400',
     letterSpacing: '0.01em'
   };
@@ -192,14 +195,14 @@ function App() {
             <div style={mainPanelGlow}></div>
             
             <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ marginBottom: '40px' }}>
+              <div style={{ marginBottom: '28px' }}>
                 <h1 style={titleStyle}>AI Voice Assistant</h1>
                 <p style={subtitleStyle}>Speak naturally, get intelligent responses</p>
               </div>
 
               <StatusDisplay status={status} isListening={isListening} />
 
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px' }}>
                 <MicButton 
                   isListening={isListening}
                   onStart={startListening}
@@ -213,21 +216,67 @@ function App() {
                 isListening={isListening}
               />
 
-              {/* Available Commands */}
-              <div style={commandsStyle}>
-                <h3 style={commandsTitle}>Available Commands</h3>
-                <div style={commandsGrid}>
-                  <div style={commandItem}>"Help"</div>
-                  <div style={commandItem}>"What time is it?"</div>
-                  <div style={commandItem}>"What's the date?"</div>
-                  <div style={commandItem}>"Set timer 5 minutes"</div>
-                  <div style={commandItem}>"Tell me a joke"</div>
-                  <div style={commandItem}>"Calculate 10 plus 5"</div>
-                  <div style={commandItem}>"Generate password"</div>
-                  <div style={commandItem}>"Motivate me"</div>
-                  <div style={commandItem}>"Flip coin"</div>
-                  <div style={commandItem}>"Roll dice"</div>
+              {/* Available Commands Dropdown */}
+              <details style={{
+                marginTop: '24px',
+                background: 'rgba(255, 255, 255, 0.04)',
+                backdropFilter: 'blur(12px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                padding: '16px'
+              }}>
+                <summary style={{
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  listStyle: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  📋 Available Commands
+                  <span style={{ fontSize: '12px', opacity: 0.7 }}>(click to expand)</span>
+                </summary>
+                <div style={{
+                  marginTop: '12px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '8px'
+                }}>
+                  {[
+                    '"Help"',
+                    '"What time is it?"',
+                    '"What\'s the date?"',
+                    '"Set timer 5 minutes"',
+                    '"Tell me a joke"',
+                    '"Calculate 10 plus 5"',
+                    '"Generate password"',
+                    '"Motivate me"',
+                    '"Flip coin"',
+                    '"Roll dice"'
+                  ].map((command, index) => (
+                    <div key={index} style={{
+                      color: 'rgba(255, 255, 255, 0.65)',
+                      fontSize: '12px',
+                      padding: '6px 10px',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                      fontWeight: '500'
+                    }}>
+                      {command}
+                    </div>
+                  ))}
                 </div>
+              </details>
+
+              {/* Audio Controls */}
+              <div style={{ marginTop: '20px' }}>
+                <AudioControls 
+                  settings={voiceSettings}
+                  onUpdate={updateVoiceSettings}
+                />
               </div>
             </div>
           </div>
@@ -236,6 +285,9 @@ function App() {
           <CommandHistory history={history} onClearHistory={clearHistory} />
         </div>
       </div>
+
+      {/* Azure Settings Panel */}
+      <AzureSettings onUpdateCredentials={updateAzureCredentials} />
 
       {/* Global Animations */}
       <style>{`

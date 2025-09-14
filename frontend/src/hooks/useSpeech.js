@@ -257,6 +257,12 @@ export const useSpeech = () => {
               source: 'system'
             };
             setHistory(prev => [historyItem, ...prev].slice(0, 15));
+          } else if (message.type === 'azure_credentials_updated') {
+            setStatus('Azure credentials updated successfully!');
+            setAzureAvailable(true);
+          } else if (message.type === 'azure_credentials_error') {
+            setStatus(`Azure error: ${message.error}`);
+          
           }
         };
         
@@ -385,6 +391,16 @@ export const useSpeech = () => {
     setHistory([]);
   }, []);
 
+  const updateAzureCredentials = useCallback((credentials) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'update_azure_credentials',
+        key: credentials.key,
+        region: credentials.region
+      }));
+    }
+  }, []);
+
   return {
     isListening,
     transcription,
@@ -398,6 +414,7 @@ export const useSpeech = () => {
     updateVoiceSettings,
     testVoice,
     clearHistory,
-    toggleAzureUsage
+    toggleAzureUsage,
+    updateAzureCredentials
   };
 };

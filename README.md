@@ -1,34 +1,45 @@
 # AI Voice Assistant with Azure Speech Services
 
-A premium voice assistant application with beautiful glassmorphism UI, supporting both Azure Speech Services and browser APIs.
+A premium desktop voice assistant application with beautiful glassmorphism UI, supporting both Azure Speech Services and browser APIs. Features real-time voice recognition, neural text-to-speech, and an intuitive modern interface.
 
 ## ✨ Features
 
 ### 🎤 Voice Commands
+- **"Help"** - List all available commands
 - **"What time is it?"** - Get current time
 - **"What's the date?"** - Get current date  
-- **"Set timer X minutes"** - Set countdown timers
-- **"Tell me a joke"** - Random jokes
+- **"Set timer X minutes"** - Set countdown timers with notifications
+- **"Tell me a joke"** - Random programming jokes
+- **"Calculate X plus Y"** - Simple math operations (plus, minus, times, divide)
+- **"Generate password"** - Secure 12-character passwords
+- **"Motivate me"** - Inspirational quotes
+- **"Flip coin"** - Random heads or tails
+- **"Roll dice"** - Random number 1-6
 
-### 🎛️ Voice Settings
-- **Voice Types**: Default, British, Australian, Female
-- **Speech Speed**: 0.5x to 2x speed control
-- **Volume Control**: 0% to 100%
-- **Azure/Browser Toggle**: Switch between premium Azure voices and browser voices
+### 🎛️ Voice & Audio Settings
+- **Voice Types**: Default (US), British, Australian, Female (LibbyNeural)
+- **Speech Speed**: 0.5x to 2x speed control with live preview
+- **Volume Control**: 0% to 100% with real-time adjustment
+- **Azure/Browser Toggle**: Switch between premium Azure neural voices and browser voices
+- **UI-Integrated Settings**: Configure Azure credentials directly in the app
 
-### 🎨 Premium UI
-- **Glassmorphism Design** with backdrop blur effects
-- **Animated Gradient Backgrounds** with floating blobs
-- **3-Panel Responsive Layout** (Settings | Main | History)
-- **Smooth Animations** and hover effects
-- **Real-time Status Indicators**
+### 🎨 Premium UI Design
+- **Glassmorphism Design** with backdrop blur effects and transparency
+- **Animated Gradient Backgrounds** with floating animated blobs
+- **Compact 3-Panel Layout** (Voice Settings | Main Interface | Command History)
+- **Collapsible Command List** - Dropdown to save space
+- **Horizontal Audio Controls** - Speed and volume sliders at bottom
+- **Smooth Animations** and hover effects throughout
+- **Real-time Status Indicators** and visual feedback
 - **Desktop App Mode** - Runs as native desktop application with PyWebView
 
 ### 📝 Smart Features
-- **Command History** - Last 15 conversations with timestamps
-- **Command Type Icons** - Visual indicators for different commands
-- **Timer Notifications** - Background timer alerts
-- **Error Handling** - Graceful fallbacks
+- **Command History** - Last 15 conversations with timestamps and command types
+- **Real-time Azure Settings** - Update API keys and regions without restart
+- **Timer Notifications** - Background timer alerts with voice announcements
+- **Graceful Error Handling** - Automatic fallbacks when services unavailable
+- **WebSocket Communication** - Real-time bidirectional communication
+- **Cross-Platform Support** - Windows desktop application
 
 ## 🚀 Setup Instructions
 
@@ -79,37 +90,48 @@ npm run dev
 
 ## 🎯 Usage
 
-### Desktop App
-1. **Run the desktop app** with `python app.py`
-2. **Allow microphone access** when prompted
-3. **Click the microphone button** to start listening
-4. **Speak your command** clearly
-5. **Hear the AI response** through your selected voice service
+### Desktop App (Recommended)
+1. **Launch the app** with `python app.py`
+2. **Configure Azure settings** (click ⚙️ button in top-right)
+3. **Select voice type** from the left panel
+4. **Adjust audio controls** at the bottom (speed/volume)
+5. **Click the microphone button** to start listening
+6. **Speak your command** clearly
+7. **View command history** in the right panel
 
-### Browser Mode
-1. **Start both servers** (backend on :8000, frontend on :5173)
-2. **Open http://localhost:5173** in your browser
-3. **Follow steps 2-5 above**
+### Development Mode (Browser)
+1. **Start backend**: `cd backend && python main.py`
+2. **Start frontend**: `cd frontend && npm run dev`
+3. **Open http://localhost:5173** in your browser
+4. **Follow steps 2-7 above**
 
 ## 🛠️ Tech Stack
 
 ### Backend
-- **FastAPI** - Modern Python web framework
-- **Azure Speech SDK** - Premium speech services
-- **WebSocket** - Real-time communication
+- **FastAPI** - Modern Python web framework with WebSocket support
+- **Azure Speech SDK** - Premium neural voice synthesis and recognition
+- **Python-dotenv** - Environment variable management
+- **Asyncio** - Asynchronous programming for real-time features
 - **Python 3.8+**
 
 ### Frontend
-- **React 18** - Modern UI framework
-- **Vite** - Fast build tool
-- **Web Speech API** - Browser speech recognition
-- **Speech Synthesis API** - Browser text-to-speech
+- **React 18** - Modern UI framework with hooks
+- **Vite** - Fast build tool and development server
+- **Web Speech API** - Browser speech recognition fallback
+- **Speech Synthesis API** - Browser text-to-speech fallback
+- **CSS-in-JS** - Styled components with glassmorphism effects
+
+### Desktop Integration
+- **PyWebView** - Native desktop window wrapper
+- **Threading** - Background server management
+- **PyInstaller** - Executable packaging for distribution
 
 ## 📱 Browser Support
 
-- **Chrome/Edge**: Full support (recommended)
-- **Firefox**: Limited Web Speech API support
-- **Safari**: Basic support
+- **Chrome/Edge**: Full support (recommended) - Complete Web Speech API
+- **Firefox**: Limited Web Speech API support - Basic functionality
+- **Safari**: Basic support - Reduced features
+- **Desktop App**: Full support on Windows - Recommended for best experience
 
 ## 🎪 Available Voice Commands
 
@@ -135,11 +157,26 @@ npm run dev
 - **"Help"** - List all available commands
 - **"What can you do?"** - Show capabilities
 
+## ⚙️ Azure Configuration
+
+### UI-Based Setup (New!)
+1. **Click ⚙️ Azure Settings** in top-right corner
+2. **Enter your API key** in the text field
+3. **Select your region** from dropdown (Japan East, East US, etc.)
+4. **Click Save** - credentials are automatically saved to .env file
+
+### Manual Setup
+Alternatively, edit `backend/.env` file:
+```
+KEY=your_azure_speech_key
+REGION=your_azure_region
+```
+
 ## 🔄 Service Toggle
 
 Switch between:
-- **🔵 Azure Speech**: Premium neural voices, better accuracy
-- **🌐 Browser Speech**: Basic voices, works offline
+- **🔵 Azure Speech**: Premium neural voices, better accuracy, 6 regions
+- **🌐 Browser Speech**: Basic voices, works offline, no setup required
 
 ## 📦 Packaging as Executable
 
